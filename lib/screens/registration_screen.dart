@@ -22,6 +22,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   bool _isLoading = false;
 
   DateTime? _selectedBirthDate; // BARU (Latihan 2)
+  String? _selectedGender; // BARU (Latihan 3)
+  final List<String> _genderOptions = ['Laki-laki', 'Perempuan']; // BARU (Latihan 3)
 
   @override
   void dispose() {
@@ -107,6 +109,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     }
   }
 
+  // BARU (Latihan 3): Validasi jenis kelamin
+  String? _validateGender(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Jenis kelamin wajib dipilih';
+    }
+    return null;
+  }
+
   // Validasi password
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
@@ -158,7 +168,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               'Selamat, ${_nameController.text}!\n'
               'Email: ${_emailController.text}\n'
               'Telepon: ${_phoneController.text}\n'
-              'Tanggal Lahir: ${_birthDateController.text}',
+              'Tanggal Lahir: ${_birthDateController.text}\n'
+              'Jenis Kelamin: ${_selectedGender ?? '-'}',
             ),
             actions: [
               TextButton(
@@ -187,6 +198,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
     setState(() {
       _selectedBirthDate = null; // BARU (Latihan 2)
+      _selectedGender = null; // BARU (Latihan 3)
     });
   }
 
@@ -279,6 +291,36 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       fillColor: Colors.grey[50],
                     ),
                     validator: _validateBirthDate,
+                  ),
+                ),
+
+                // BARU (Latihan 3): Dropdown Jenis Kelamin
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: DropdownButtonFormField<String>(
+                    value: _selectedGender,
+                    decoration: InputDecoration(
+                      labelText: 'Jenis Kelamin',
+                      prefixIcon: const Icon(Icons.wc),
+                      border: const OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                    ),
+                    hint: const Text('Pilih jenis kelamin'),
+                    items: _genderOptions
+                        .map(
+                          (gender) => DropdownMenuItem<String>(
+                            value: gender,
+                            child: Text(gender),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedGender = value;
+                      });
+                    },
+                    validator: _validateGender,
                   ),
                 ),
 

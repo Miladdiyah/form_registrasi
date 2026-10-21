@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-
 import '../widgets/custom_text_field.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
+
   @override
   State<RegistrationScreen> createState() => _RegistrationScreenState();
 }
@@ -12,15 +12,19 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController(); // BARU (Latihan 1)
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
+
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose(); // BARU (Latihan 1)
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -45,6 +49,23 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
     if (!emailRegex.hasMatch(value.trim())) {
       return 'Format email tidak valid';
+    }
+    return null;
+  }
+
+  // BARU (Latihan 1): Validasi nomor telepon
+  String? _validatePhone(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Nomor telepon tidak boleh kosong';
+    }
+    if (!RegExp(r'^[0-9]+$').hasMatch(value.trim())) {
+      return 'Nomor telepon hanya boleh berisi angka';
+    }
+    if (value.trim().length < 10) {
+      return 'Nomor telepon minimal 10 digit';
+    }
+    if (value.trim().length > 13) {
+      return 'Nomor telepon maksimal 13 digit';
     }
     return null;
   }
@@ -83,11 +104,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       setState(() {
         _isLoading = true;
       });
+
       // Simulasi proses registrasi
       Future.delayed(const Duration(seconds: 2), () {
+        if (!mounted) return;
         setState(() {
           _isLoading = false;
         });
+
         // Tampilkan dialog sukses
         showDialog(
           context: context,
@@ -95,7 +119,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             title: const Text('Registrasi Berhasil'),
             content: Text(
               'Selamat, ${_nameController.text}!\n'
-              'Email: ${_emailController.text}',
+              'Email: ${_emailController.text}\n'
+              'Telepon: ${_phoneController.text}', // BARU (opsional)
             ),
             actions: [
               TextButton(
@@ -117,6 +142,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     _formKey.currentState!.reset();
     _nameController.clear();
     _emailController.clear();
+    _phoneController.clear(); // BARU (Latihan 1)
     _passwordController.clear();
     _confirmPasswordController.clear();
   }
@@ -147,16 +173,23 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 const SizedBox(height: 16),
                 const Text(
                   'Buat Akun Baru',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   'Isi form di bawah ini untuk mendaftar',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
+
                 // Field Nama
                 CustomTextField(
                   controller: _nameController,
@@ -175,6 +208,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   keyboardType: TextInputType.emailAddress,
                   validator: _validateEmail,
                 ),
+
+                // BARU (Latihan 1): Field Nomor Telepon
+                CustomTextField(
+                  controller: _phoneController,
+                  label: 'Nomor Telepon',
+                  hint: 'Contoh: 081234567890',
+                  prefixIcon: Icons.phone,
+                  keyboardType: TextInputType.phone,
+                  validator: _validatePhone,
+                ),
+
                 // Field Password
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -222,7 +266,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         ),
                         onPressed: () {
                           setState(() {
-                            _obscureConfirmPassword = !_obscureConfirmPassword;
+                            _obscureConfirmPassword =
+                                !_obscureConfirmPassword;
                           });
                         },
                       ),
@@ -253,9 +298,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : const Text('Daftar', style: TextStyle(fontSize: 16)),
+                      : const Text(
+                          'Daftar',
+                          style: TextStyle(fontSize: 16),
+                        ),
                 ),
                 const SizedBox(height: 12),
+
                 // Tombol Reset
                 OutlinedButton(
                   onPressed: _isLoading ? null : _resetForm,

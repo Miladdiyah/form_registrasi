@@ -13,6 +13,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController(); // BARU (Latihan 1)
+  final _birthDateController = TextEditingController(); // BARU (Latihan 2)
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
@@ -20,11 +21,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
 
+  DateTime? _selectedBirthDate; // BARU (Latihan 2)
+
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose(); // BARU (Latihan 1)
+    _birthDateController.dispose(); // BARU (Latihan 2)
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -68,6 +72,39 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       return 'Nomor telepon maksimal 13 digit';
     }
     return null;
+  }
+
+  // BARU (Latihan 2): Validasi tanggal lahir
+  String? _validateBirthDate(String? value) {
+    if (_selectedBirthDate == null) {
+      return 'Tanggal lahir wajib dipilih';
+    }
+    return null;
+  }
+
+  // BARU (Latihan 2): Ubah DateTime jadi teks dd/mm/yyyy
+  String _formatDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    return '$day/$month/${date.year}';
+  }
+
+  // BARU (Latihan 2): Buka date picker
+  Future<void> _pickBirthDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedBirthDate ?? DateTime(2005, 1, 1),
+      firstDate: DateTime(1950),
+      lastDate: DateTime.now(),
+      helpText: 'Pilih Tanggal Lahir',
+    );
+
+    if (picked != null && mounted) {
+      setState(() {
+        _selectedBirthDate = picked;
+        _birthDateController.text = _formatDate(picked);
+      });
+    }
   }
 
   // Validasi password
@@ -120,7 +157,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             content: Text(
               'Selamat, ${_nameController.text}!\n'
               'Email: ${_emailController.text}\n'
-              'Telepon: ${_phoneController.text}', // BARU (opsional)
+              'Telepon: ${_phoneController.text}\n'
+              'Tanggal Lahir: ${_birthDateController.text}',
             ),
             actions: [
               TextButton(
@@ -143,8 +181,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     _nameController.clear();
     _emailController.clear();
     _phoneController.clear(); // BARU (Latihan 1)
+    _birthDateController.clear(); // BARU (Latihan 2)
     _passwordController.clear();
     _confirmPasswordController.clear();
+
+    setState(() {
+      _selectedBirthDate = null; // BARU (Latihan 2)
+    });
   }
 
   @override
@@ -217,6 +260,26 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   prefixIcon: Icons.phone,
                   keyboardType: TextInputType.phone,
                   validator: _validatePhone,
+                ),
+
+                // BARU (Latihan 2): Field Tanggal Lahir
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: TextFormField(
+                    controller: _birthDateController,
+                    readOnly: true,
+                    onTap: _pickBirthDate,
+                    decoration: InputDecoration(
+                      labelText: 'Tanggal Lahir',
+                      hintText: 'Pilih tanggal lahir',
+                      prefixIcon: const Icon(Icons.cake),
+                      suffixIcon: const Icon(Icons.calendar_today),
+                      border: const OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                    ),
+                    validator: _validateBirthDate,
+                  ),
                 ),
 
                 // Field Password

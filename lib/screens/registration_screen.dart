@@ -26,6 +26,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final List<String> _genderOptions = ['Laki-laki', 'Perempuan']; // BARU (Latihan 3)
   bool _agreeTerms = false; // BARU (Latihan 4)
   bool _termsError = false; // BARU (Latihan 4)
+  int _passwordStrength = 0; // BARU (Latihan 5): 0=kosong, 1=Lemah, 2=Sedang, 3=Kuat
 
   @override
   void dispose() {
@@ -147,6 +148,91 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     return null;
   }
 
+  // BARU (Latihan 5): Hitung kekuatan password
+  int _calculateStrength(String value) {
+    if (value.isEmpty) return 0;
+    if (value.length < 8) return 1; // Lemah
+
+    final hasUpper = value.contains(RegExp(r'[A-Z]'));
+    final hasLower = value.contains(RegExp(r'[a-z]'));
+    final hasDigit = value.contains(RegExp(r'[0-9]'));
+    final hasSymbol = value.contains(RegExp(r'[^A-Za-z0-9]'));
+    final hasLetter = hasUpper || hasLower;
+
+    if (hasUpper && hasLower && hasDigit && hasSymbol) return 3; // Kuat
+    if (hasLetter && hasDigit) return 2; // Sedang
+    return 1; // Lemah
+  }
+
+  // BARU (Latihan 5): Dipanggil setiap isi password berubah
+  void _onPasswordChanged(String value) {
+    final newStrength = _calculateStrength(value);
+    // Least privilege: setState hanya kalau nilainya benar-benar berubah
+    if (newStrength != _passwordStrength) {
+      setState(() {
+        _passwordStrength = newStrength;
+      });
+    }
+  }
+
+  String get _strengthLabel {
+    switch (_passwordStrength) {
+      case 1:
+        return 'Lemah';
+      case 2:
+        return 'Sedang';
+      case 3:
+        return 'Kuat';
+      default:
+        return '';
+    }
+  }
+
+  Color get _strengthColor {
+    switch (_passwordStrength) {
+      case 1:
+        return Colors.red;
+      case 2:
+        return Colors.orange;
+      case 3:
+        return Colors.green;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  // BARU (Latihan 5): Widget indikator kekuatan password
+  Widget _buildStrengthIndicator() {
+    if (_passwordStrength == 0) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: _passwordStrength / 3,
+              minHeight: 8,
+              backgroundColor: Colors.grey[300],
+              valueColor: AlwaysStoppedAnimation<Color>(_strengthColor),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Kekuatan password: $_strengthLabel',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: _strengthColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // Handler submit form
   void _submitForm() {
     final isFormValid = _formKey.currentState!.validate();
@@ -210,6 +296,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       _selectedGender = null; // BARU (Latihan 3)
       _agreeTerms = false; // BARU (Latihan 4)
       _termsError = false; // BARU (Latihan 4)
+      _passwordStrength = 0; // BARU (Latihan 5)
     });
   }
 
@@ -340,6 +427,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: TextFormField(
                     controller: _passwordController,
+                    onChanged: _onPasswordChanged, // BARU (Latihan 5)
                     decoration: InputDecoration(
                       labelText: 'Password',
                       hintText: 'Minimal 8 karakter, huruf kapital, angka',
@@ -364,6 +452,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     validator: _validatePassword,
                   ),
                 ),
+
+                // BARU (Latihan 5): Indikator kekuatan password
+                _buildStrengthIndicator(),
 
                 // Field Konfirmasi Password
                 Padding(

@@ -24,6 +24,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   DateTime? _selectedBirthDate; // BARU (Latihan 2)
   String? _selectedGender; // BARU (Latihan 3)
   final List<String> _genderOptions = ['Laki-laki', 'Perempuan']; // BARU (Latihan 3)
+  bool _agreeTerms = false; // BARU (Latihan 4)
+  bool _termsError = false; // BARU (Latihan 4)
 
   @override
   void dispose() {
@@ -147,7 +149,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   // Handler submit form
   void _submitForm() {
-    if (_formKey.currentState!.validate()) {
+    final isFormValid = _formKey.currentState!.validate();
+
+    // BARU (Latihan 4): cek checkbox Syarat & Ketentuan
+    setState(() {
+      _termsError = !_agreeTerms;
+    });
+
+    if (isFormValid && _agreeTerms) {
       setState(() {
         _isLoading = true;
       });
@@ -199,6 +208,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     setState(() {
       _selectedBirthDate = null; // BARU (Latihan 2)
       _selectedGender = null; // BARU (Latihan 3)
+      _agreeTerms = false; // BARU (Latihan 4)
+      _termsError = false; // BARU (Latihan 4)
     });
   }
 
@@ -384,6 +395,27 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     validator: _validateConfirmPassword,
                   ),
                 ),
+                // BARU (Latihan 4): Checkbox Syarat & Ketentuan
+                CheckboxListTile(
+                  value: _agreeTerms,
+                  onChanged: (value) {
+                    setState(() {
+                      _agreeTerms = value ?? false;
+                      if (_agreeTerms) _termsError = false;
+                    });
+                  },
+                  title: const Text('Saya setuju dengan Syarat & Ketentuan'),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                if (_termsError)
+                  const Padding(
+                    padding: EdgeInsets.only(left: 12, bottom: 8),
+                    child: Text(
+                      'Anda harus menyetujui Syarat & Ketentuan',
+                      style: TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                  ),
                 const SizedBox(height: 24),
 
                 // Tombol Submit
